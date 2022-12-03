@@ -10,11 +10,6 @@ public class Constants {
 
     public static final String APP_KEY = "966a733ecfa0463eaec5e9697c05fd23";
 
-    //TOKEN 加入房间的时候需要使用token完成鉴权，详情参见{https://www.volcengine.com/docs/6348/70121}
-    public static final String TOKEN_1918 =
-            "001634aa0872adebe01979a1fc0PgCOgQsEWWSEY9mejWMEADExNDUEADE5MTgGAAAA2Z6NYwEA2Z6NYwIA2Z6NYwMA2Z6NYwQA2Z6NYwUA2Z6NYyAAAtPYQM8Z7e68frf+28dgg/H0XHZxTWICTY8FQyv3o8w=";
-
-    public static final String TOKEN_1919 = "001634aa0872adebe01979a1fc0PgDHuEYBd2SEY/eejWMEADExNDUEADE5MTkGAAAA956NYwEA956NYwIA956NYwMA956NYwQA956NYwUA956NYyAArbqxAGejFpdm4IT4PiNkGjT2GlPGokBIvmz2d1oXGzw=";
     //INPUT_REGEX SDK 对房间名、用户名的限制是：非空且最大长度不超过128位的数字、大小写字母、@ . _ -
     public static final String INPUT_REGEX = "^[a-zA-Z0-9@._-]{1,128}$";
 
