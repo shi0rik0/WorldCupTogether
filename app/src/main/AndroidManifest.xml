@@ -46,7 +46,7 @@
         <activity
             android:name=".RTCRoomActivity"
             android:launchMode="singleTop"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
     </application>
 
 </manifest>
