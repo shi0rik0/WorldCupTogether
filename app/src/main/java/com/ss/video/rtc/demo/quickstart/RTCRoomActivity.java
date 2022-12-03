@@ -75,6 +75,7 @@ import java.util.Locale;
  * 详细的API文档参见{https://www.volcengine.com/docs/6348/70080}
  */
 public class RTCRoomActivity extends AppCompatActivity {
+    private int mRemoteUsers = 0;
     private String mRoomID;
     private String mUserID;
 
@@ -91,6 +92,7 @@ public class RTCRoomActivity extends AppCompatActivity {
     private final FrameLayout[] mRemoteContainerArray = new FrameLayout[3];
     private final TextView[] mUserIdTvArray = new TextView[3];
     private final String[] mShowUidArray = new String[3];
+    private final String[] mRemoteRoomIDs = new String[3];
 
     private RTCVideo mRTCVideo;
     private RTCRoom mRTCRoom;
@@ -278,19 +280,35 @@ public class RTCRoomActivity extends AppCompatActivity {
         if (emptyInx < 0) {
             return;
         }
-        mShowUidArray[emptyInx] = uid;
-        mUserIdTvArray[emptyInx].setText(String.format("UserId:%s", uid));
-        setRemoteRenderView(roomId, uid, mRemoteContainerArray[emptyInx]);
+        setRemoteViewByIndex(emptyInx, roomId, uid);
+        mRemoteUsers++;
+    }
+
+    private void setRemoteViewByIndex(int i, String roomID, String userID) {
+        mRemoteRoomIDs[i] = roomID;
+        mShowUidArray[i] = userID;
+        mUserIdTvArray[i].setText(userID);
+        setRemoteRenderView(roomID, userID, mRemoteContainerArray[i]);
     }
 
     private void removeRemoteView(String uid) {
-        for (int i = 0; i < mShowUidArray.length; i++) {
+        int i;
+        for (i = 0; i < mShowUidArray.length; i++) {
             if (TextUtils.equals(uid, mShowUidArray[i])) {
-                mShowUidArray[i] = null;
-                mUserIdTvArray[i].setText(null);
-                mRemoteContainerArray[i].removeAllViews();
+                break;
             }
         }
+        for (int j = i; j < mRemoteUsers - 1; j++) {
+            setRemoteViewByIndex(j, mRemoteRoomIDs[j+1], mShowUidArray[j+1]);
+        }
+        removeRemoteViewByIndex(mRemoteUsers - 1);
+        mRemoteUsers--;
+    }
+
+    private void removeRemoteViewByIndex(int i) {
+        mShowUidArray[i] = null;
+        mUserIdTvArray[i].setText(null);
+        mRemoteContainerArray[i].removeAllViews();
     }
 
     private void onSwitchCameraClick() {
