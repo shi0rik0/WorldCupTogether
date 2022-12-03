@@ -1,13 +1,29 @@
 package com.ss.video.rtc.demo.quickstart;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
+
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.text.Html;
 import android.text.TextUtils;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.TextureView;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.view.animation.TranslateAnimation;
+import android.view.inputmethod.InputMethodManager;
+
+import android.widget.EditText;
+
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,6 +31,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCRoomConfig;
@@ -33,6 +50,7 @@ import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.bytertc.engine.type.UserMessageSendResult;
 import com.ss.video.rtc.demo.quickstart.token.Utils;
 
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 /**
@@ -74,21 +92,31 @@ import java.util.Locale;
  */
 public class RTCRoomActivity extends AppCompatActivity {
     private int mRemoteUsers = 0;
+    private int mLineCount = 0;
     private String mRoomID;
     private String mUserID;
+    private Handler handler;
+    private Runnable r;
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private Button mTestButton;
 
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
     private ImageView mVideoIv;
+    private ImageView mMessageIv;
+    private Button mMessageSendBt;
+    private EditText mMessageEt;
+    private TextView mMessageTv;
 
     private boolean mIsSpeakerPhone = true;
     private boolean mIsMuteAudio = false;
     private boolean mIsMuteVideo = false;
+    private boolean mIsMessage = true;
     private CameraId mCameraID = CameraId.CAMERA_ID_FRONT;
 
     private FrameLayout mSelfContainer;
+    private ConstraintLayout mMessageViewLayout;
 
     private static final int MAX_REMOTE_USERS = 7;
     private final String[] mRemoteRoomIDs = new String[MAX_REMOTE_USERS];
@@ -191,11 +219,14 @@ public class RTCRoomActivity extends AppCompatActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        getWindow().setStatusBarColor(getResources().getColor(android.R.color.black));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(android.R.color.black));
+        }
 
         Intent intent = getIntent();
         mRoomID = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
         mUserID = intent.getStringExtra(Constants.USER_ID_EXTRA);
+
         // 初始化ui界面
         initUI(mRoomID, mUserID);
         // 下面这个函数调用包括这些操作：
@@ -207,6 +238,24 @@ public class RTCRoomActivity extends AppCompatActivity {
         // setRoomEventHandler
         // joinRoom
         initEngineAndJoinRoom(mRoomID, mUserID);
+
+        // 处理聊天窗口自动隐藏的 handler
+        handler = new Handler();
+        r = new Runnable() {
+            @Override
+            public void run() {
+                int lineCountTemp = mMessageTv.getLineCount();
+                Log.d(TAG, "run: " + lineCountTemp);
+                if(mLineCount == lineCountTemp) {
+                    hideChatView();
+                    updateLocalMessageStatus();
+                } else {
+                    mLineCount = lineCountTemp;
+                    handler.postDelayed(this, 5000);
+                }
+            }
+        };
+        mMessageTv.setMovementMethod(new ScrollingMovementMethod());
     }
 
     private void initUI(String roomId, String userId) {
@@ -229,10 +278,37 @@ public class RTCRoomActivity extends AppCompatActivity {
         mSpeakerIv = findViewById(R.id.switch_audio_router);
         mAudioIv = findViewById(R.id.switch_local_audio);
         mVideoIv = findViewById(R.id.switch_local_video);
+        mMessageIv = findViewById(R.id.message);
+        mMessageSendBt = findViewById(R.id.message_bt);
+        mMessageEt = findViewById(R.id.message_et);
+        mMessageTv = findViewById(R.id.message_tv);
+
+        mMessageViewLayout = findViewById(R.id.message_view_layout);
+
         findViewById(R.id.hang_up).setOnClickListener((v) -> onBackPressed());
         mSpeakerIv.setOnClickListener((v) -> updateSpeakerStatus());
         mAudioIv.setOnClickListener((v) -> updateLocalAudioStatus());
         mVideoIv.setOnClickListener((v) -> updateLocalVideoStatus());
+        mMessageIv.setOnClickListener((v) -> updateLocalMessageStatus());
+        mMessageSendBt.setOnClickListener((v) -> sendMessage());
+        mMessageEt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if (b) {
+                    // 获取焦点时
+                    Log.d(TAG, "onFocusChange: get focus");
+                    handler.removeCallbacksAndMessages(null);
+                } else {
+                    // 失去焦点时
+                    Log.d(TAG, "onFocusChange: lose focus");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        if (!handler.hasCallbacks(r)) {
+                         handler.postDelayed(r, 5000);
+                        }
+                    }
+                }
+            }
+        });
         TextView roomIDTV = findViewById(R.id.room_id_text);
         TextView userIDTV = findViewById(R.id.self_video_user_id_tv);
         roomIDTV.setText(String.format("RoomID:%s", roomId));
@@ -384,6 +460,117 @@ public class RTCRoomActivity extends AppCompatActivity {
             mRTCVideo.startVideoCapture();
         }
         mVideoIv.setImageResource(mIsMuteVideo ? R.drawable.mute_video : R.drawable.normal_video);
+    }
+
+    private void updateLocalMessageStatus() {
+        mIsMessage = !mIsMessage;
+        if (mIsMessage) {
+            // 关闭聊天窗口
+            hideChatView();
+            handler.removeCallbacksAndMessages(null);
+        } else {
+            // 开启聊天窗口
+            showChatView();
+            handler.postDelayed(r, 5000);
+        }
+        mMessageIv.setImageResource(mIsMessage ? R.drawable.message_square_on : R.drawable.message_square_off);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent e) {
+        //如果是点击事件，获取点击的view，并判断是否要清除焦点
+        if(e.getAction() == MotionEvent.ACTION_DOWN) {
+            //获取目前得到焦点的view
+            View v = getCurrentFocus();
+            Log.d(TAG, "Clicked: " + v);
+            //判断是否要收起并进行处理
+            if (isShouldHideKeyboard(v, e)) {
+                mMessageEt.clearFocus();
+                hideKeyboard(v.getWindowToken());
+            }
+        }
+        //这个是activity的事件分发，一定要有，不然就不会有任何的点击事件了
+        return super.dispatchTouchEvent(e);
+    }
+
+    //判断是否要收起键盘
+    private boolean isShouldHideKeyboard(View v, MotionEvent event) {
+        //如果目前得到焦点的这个view是editText的话进行判断点击的位置
+        if (v instanceof EditText) {
+            int[] l = {0, 0};
+            v.getLocationInWindow(l);
+            int left = l[0],
+                    top = l[1],
+                    bottom = top + v.getHeight(),
+                    right = left + v.getWidth();
+            // 点击EditText的事件，忽略它。
+            return !(event.getX() > left) || !(event.getX() < right)
+                    || !(event.getY() > top) || !(event.getY() < bottom);
+        }
+        // 如果焦点不是EditText则忽略，这个发生在视图刚绘制完，第一个焦点不在EditText上
+        return false;
+    }
+
+    //隐藏软键盘并让editText失去焦点
+    private void hideKeyboard(IBinder token) {
+        if (token != null) {
+            //这里先获取InputMethodManager再调用他的方法来关闭软键盘
+            //InputMethodManager就是一个管理窗口输入的manager
+            InputMethodManager im = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (im != null) {
+                im.hideSoftInputFromWindow(token, InputMethodManager.HIDE_NOT_ALWAYS);
+            }
+        }
+    }
+    private void showChatView() {
+        //设置动画，从自身位置的最下端向上滑动了自身的高度，持续时间为500ms
+        final TranslateAnimation ctrlAnimation = new TranslateAnimation(
+                TranslateAnimation.RELATIVE_TO_SELF, 0, TranslateAnimation.RELATIVE_TO_SELF, 0,
+                TranslateAnimation.RELATIVE_TO_SELF, 1, TranslateAnimation.RELATIVE_TO_SELF, 0);
+        ctrlAnimation.setDuration(400l);     //设置动画的过渡时间
+        mMessageViewLayout.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMessageViewLayout.setVisibility(View.VISIBLE);
+                mMessageViewLayout.startAnimation(ctrlAnimation);
+            }
+        }, 500);
+    }
+    private void hideChatView() {
+        //设置动画，持续时间为500ms
+        final TranslateAnimation ctrlAnimation = new TranslateAnimation(
+                TranslateAnimation.RELATIVE_TO_SELF, 0, TranslateAnimation.RELATIVE_TO_SELF, 0,
+                TranslateAnimation.RELATIVE_TO_SELF, 0, TranslateAnimation.RELATIVE_TO_SELF, 1);
+        ctrlAnimation.setDuration(400l);     //设置动画的过渡时间
+        mMessageViewLayout.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mMessageViewLayout.setVisibility(View.GONE);
+                mMessageViewLayout.startAnimation(ctrlAnimation);
+            }
+        }, 500);
+    }
+
+    private void sendMessage() {
+        String input = mMessageEt.getText().toString();
+        mMessageEt.setText("");
+        if(!input.equals("")) {
+            // local 用户发言，Username 会加粗
+            mMessageTv.append(Html.fromHtml("<b>Username: </b> Hello, this is Joey! :)"
+                    + "       " + simpleDateFormat.format(System.currentTimeMillis())));
+            mMessageTv.append("\n");
+
+            // 其他用户发言
+            mMessageTv.append("Username: " + input + "       " +
+                    simpleDateFormat.format(System.currentTimeMillis())+"\n");
+            int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
+                    - mMessageTv.getHeight();
+            if (scrollAmount > 0) {
+                mMessageTv.scrollTo(0, scrollAmount);
+            }else {
+                mMessageTv.scrollTo(0, 0);
+            }
+        }
     }
 
     private void showAlertDialog(String message) {

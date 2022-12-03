@@ -1,0 +1,8 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="8dp"/>   <!-- 设置圆角弧度 -->
+    <solid android:color="#7CC3FAE8"/>   <!-- 设置背景颜色 -->
+<!--    <stroke android:color="@color/divider_color" android:width="@dimen/y2"/> &lt;!&ndash; 设置边框颜色以及宽度 &ndash;&gt;-->
+
+</shape>
