@@ -1,6 +1,5 @@
 package com.ss.video.rtc.demo.quickstart;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,7 +14,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ss.bytertc.engine.RTCEngine;
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCRoomConfig;
 import com.ss.bytertc.engine.RTCVideo;
@@ -27,14 +25,11 @@ import com.ss.bytertc.engine.data.CameraId;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.VideoFrameInfo;
-import com.ss.bytertc.engine.handler.IRTCEngineEventHandler;
 import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 import com.ss.bytertc.engine.type.ChannelProfile;
 import com.ss.bytertc.engine.type.MediaStreamType;
-import com.ss.rtc.demo.quickstart.R;
 import com.ss.video.rtc.demo.quickstart.token.Utils;
 
-import java.util.List;
 import java.util.Locale;
 
 /**

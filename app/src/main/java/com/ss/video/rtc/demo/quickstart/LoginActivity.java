@@ -1,8 +1,5 @@
 package com.ss.video.rtc.demo.quickstart;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,12 +8,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.ss.bytertc.engine.RTCEngine;
-import com.ss.rtc.demo.quickstart.R;
 
 import java.util.regex.Pattern;
-
-import com.ss.video.rtc.demo.quickstart.token.Utils;
 
 /**
  * VolcEngineRTC 音视频通话入口页面
@@ -38,7 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        Toast.makeText(this,"⭐️️ 登录成功，欢迎您！",Toast.LENGTH_LONG).show();
         EditText roomInput = findViewById(R.id.room_id_input);
         EditText userInput = findViewById(R.id.user_id_input);
         findViewById(R.id.join_room_btn).setOnClickListener((v) -> {
