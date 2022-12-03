@@ -2,6 +2,8 @@ package com.ss.video.rtc.demo.quickstart;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
+import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,20 +40,45 @@ public class SignUpActivity extends AppCompatActivity {
         String password = etPassword.getText().toString();
         String passwordConfirm = etPasswordConfirm.getText().toString();
         Log.d(TAG, "onclick: " + password + passwordConfirm);
-        if(password.equals(passwordConfirm)) {
-            password = shaEncrypt(password + "sjtu");
-            /**
-             * Create and/or open a database.
-             * */
-            SQLiteDatabase db = dbHelper.getDbHelper(this).getReadableDatabase();
-
-            String insertSql = "INSERT INTO user (name, password) VALUES ('" + username + "','" + password + "')";
-            db.execSQL(insertSql);
-            Toast.makeText(this,"⭐️ 注册成功！",Toast.LENGTH_LONG).show();
-            finish();
-        } else {
-            Toast.makeText(this,"⛔️ 两次输入密码不同，请重试！",Toast.LENGTH_LONG).show();
+        if (username.isEmpty()) {
+            Toast.makeText(this,"用户名不能为空",Toast.LENGTH_SHORT).show();
+            return;
         }
+        if (password.isEmpty()) {
+            Toast.makeText(this,"密码不能为空",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (passwordConfirm.isEmpty()) {
+            Toast.makeText(this,"确认密码不能为空",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!password.equals(passwordConfirm)) {
+            Toast.makeText(this,"两次密码输入不同",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query("user",new String[]{"name"}, "name=?",new String[]{username},null,null,null,"0,1");
+
+        if (cursor.moveToNext()) {
+            cursor.close();
+            Toast.makeText(this,"已存在的用户名",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        cursor.close();
+
+
+
+        password = shaEncrypt(password + "sjtu");
+        /**
+         * Create and/or open a database.
+         * */
+
+        String insertSql = "INSERT INTO user (name, password) VALUES ('" + username + "','" + password + "')";
+        db.execSQL(insertSql);
+        Toast.makeText(this,"⭐️ 注册成功！",Toast.LENGTH_LONG).show();
+        finish();
+
     }
     public static String shaEncrypt(String strSrc) {
         MessageDigest md = null;

@@ -71,6 +71,7 @@ public class SQLiteLoginActivity extends AppCompatActivity {
                 if(password.equals(dbPassword)) {
                     // 校验成功则跳转到 LoginActivity
                     Intent intent = new Intent(this, LoginActivity.class);
+                    intent.putExtra(Constants.USER_ID_EXTRA, username);
                     startActivity(intent);
                     return;
                 } else {
