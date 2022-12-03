@@ -32,6 +32,7 @@ import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 import com.ss.bytertc.engine.type.ChannelProfile;
 import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.rtc.demo.quickstart.R;
+import com.ss.video.rtc.demo.quickstart.token.Utils;
 
 import java.util.List;
 import java.util.Locale;
@@ -199,7 +200,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         // 创建引擎
         mRTCVideo = RTCVideo.createRTCVideo(getApplicationContext(), Constants.APPID, mIRtcVideoEventHandler, null, null);
         // 设置视频发布参数
-        VideoEncoderConfig videoEncoderConfig = new VideoEncoderConfig(360, 640, 15, 800);
+        VideoEncoderConfig videoEncoderConfig = new VideoEncoderConfig(Constants.VIDEO_WIDTH,
+                Constants.VIDEO_HEIGHT, Constants.VIDEO_FRAME_RATE, Constants.VIDEO_MAX_BITRATE);
         mRTCVideo.setVideoEncoderConfig(videoEncoderConfig);
         setLocalRenderView(userId);
         // 开启本地视频采集
@@ -211,13 +213,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         mRTCRoom.setRTCRoomEventHandler(mIRtcRoomEventHandler);
         RTCRoomConfig roomConfig = new RTCRoomConfig(ChannelProfile.CHANNEL_PROFILE_COMMUNICATION,
                 true, true, true);
-        int joinRoomRes = 0;
-        if (userId.equals( "1918"))
-            joinRoomRes = mRTCRoom.joinRoom(Constants.TOKEN_1918,
-                UserInfo.create(userId, ""), roomConfig);
-        else
-            joinRoomRes = mRTCRoom.joinRoom(Constants.TOKEN_1919,
-                    UserInfo.create(userId, ""), roomConfig);
+        int joinRoomRes = mRTCRoom.joinRoom(Utils.generateToken(roomId, userId),
+            UserInfo.create(userId, ""), roomConfig);
         Toast.makeText(this, "initEngineAndJoinRoom: " + joinRoomRes, Toast.LENGTH_SHORT).show();
         Log.i("TAG", "initEngineAndJoinRoom: " + joinRoomRes);
     }

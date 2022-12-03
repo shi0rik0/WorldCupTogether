@@ -16,6 +16,8 @@ import com.ss.rtc.demo.quickstart.R;
 
 import java.util.regex.Pattern;
 
+import com.ss.video.rtc.demo.quickstart.token.Utils;
+
 /**
  * VolcEngineRTC 音视频通话入口页面
  *
