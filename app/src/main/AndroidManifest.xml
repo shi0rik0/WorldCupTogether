@@ -19,6 +19,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MinimRTCDemo">
         <activity
+            android:name=".VedioSelectionActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".SQLiteLoginActivity"
             android:exported="true"
             android:screenOrientation="portrait">
@@ -27,6 +34,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />
@@ -40,9 +48,7 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:screenOrientation="portrait">
-
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".RTCRoomActivity"
             android:launchMode="singleTop"
