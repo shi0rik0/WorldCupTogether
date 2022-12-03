@@ -6,6 +6,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,6 +30,7 @@ import com.ss.bytertc.engine.data.VideoFrameInfo;
 import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 import com.ss.bytertc.engine.type.ChannelProfile;
 import com.ss.bytertc.engine.type.MediaStreamType;
+import com.ss.bytertc.engine.type.UserMessageSendResult;
 import com.ss.video.rtc.demo.quickstart.token.Utils;
 
 import java.util.Locale;
@@ -74,6 +77,8 @@ public class RTCRoomActivity extends AppCompatActivity {
     private String mRoomID;
     private String mUserID;
 
+    private Button mTestButton;
+
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
     private ImageView mVideoIv;
@@ -85,11 +90,11 @@ public class RTCRoomActivity extends AppCompatActivity {
 
     private FrameLayout mSelfContainer;
 
-
-    private final String[] mRemoteRoomIDs = new String[7];
-    private final FrameLayout[] mRemoteContainerArray = new FrameLayout[7];
-    private final TextView[] mUserIdTvArray = new TextView[7];
-    private final String[] mShowUidArray = new String[7];
+    private static final int MAX_REMOTE_USERS = 7;
+    private final String[] mRemoteRoomIDs = new String[MAX_REMOTE_USERS];
+    private final FrameLayout[] mRemoteContainerArray = new FrameLayout[MAX_REMOTE_USERS];
+    private final TextView[] mUserIdTvArray = new TextView[MAX_REMOTE_USERS];
+    private final String[] mShowUidArray = new String[MAX_REMOTE_USERS];
 
     private RTCVideo mRTCVideo;
     private RTCRoom mRTCRoom;
@@ -130,6 +135,20 @@ public class RTCRoomActivity extends AppCompatActivity {
             mRTCRoom.updateToken(Utils.generateToken(mRoomID, mUserID));
             Log.d("onTokenWillExpire", "token updated");
         }
+
+        @Override
+        public void onRoomMessageSendResult(long msgid, int error) {
+            super.onRoomMessageSendResult(msgid, error);
+            if (error != UserMessageSendResult.USER_MESSAGE_SEND_RESULT_SUCCESS) {
+                Log.e("onRoomMessageSendResult", "sending message failed");
+            }
+        }
+
+        @Override
+        public void onRoomMessageReceived(String uid, String message) {
+            super.onRoomMessageReceived(uid, message);
+            runOnUiThread(() -> onMessageReceived(uid, message));
+        }
     };
 
     private IRTCVideoEventHandler mIRtcVideoEventHandler = new IRTCVideoEventHandler() {
@@ -169,6 +188,10 @@ public class RTCRoomActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().setStatusBarColor(getResources().getColor(android.R.color.black));
 
         Intent intent = getIntent();
         mRoomID = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
@@ -214,6 +237,12 @@ public class RTCRoomActivity extends AppCompatActivity {
         TextView userIDTV = findViewById(R.id.self_video_user_id_tv);
         roomIDTV.setText(String.format("RoomID:%s", roomId));
         userIDTV.setText(String.format("UserID:%s", userId));
+        mTestButton = findViewById(R.id.test_button);
+        mTestButton.setOnClickListener((v) -> sendTestMessage());
+    }
+
+    private void sendTestMessage() {
+        mRTCRoom.sendRoomMessage("test!");
     }
 
     private void initEngineAndJoinRoom(String roomId, String userId) {
@@ -380,5 +409,9 @@ public class RTCRoomActivity extends AppCompatActivity {
         mIRtcVideoEventHandler = null;
         mIRtcRoomEventHandler = null;
         mRTCVideo = null;
+    }
+
+    private void onMessageReceived(String userID, String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 }

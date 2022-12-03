@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -33,8 +34,6 @@ public class SQLiteLoginActivity extends AppCompatActivity {
         // 通过 id 找到 布局管理器中的 相关属性
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
-
-
     }
 
     // 当用户点击提交按钮时,就会到这里(单击事件)
