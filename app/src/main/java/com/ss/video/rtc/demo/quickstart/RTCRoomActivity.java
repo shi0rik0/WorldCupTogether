@@ -84,10 +84,12 @@ public class RTCRoomActivity extends AppCompatActivity {
     private CameraId mCameraID = CameraId.CAMERA_ID_FRONT;
 
     private FrameLayout mSelfContainer;
-    private final FrameLayout[] mRemoteContainerArray = new FrameLayout[3];
-    private final TextView[] mUserIdTvArray = new TextView[3];
-    private final String[] mShowUidArray = new String[3];
-    private final String[] mRemoteRoomIDs = new String[3];
+
+
+    private final String[] mRemoteRoomIDs = new String[7];
+    private final FrameLayout[] mRemoteContainerArray = new FrameLayout[7];
+    private final TextView[] mUserIdTvArray = new TextView[7];
+    private final String[] mShowUidArray = new String[7];
 
     private RTCVideo mRTCVideo;
     private RTCRoom mRTCRoom;
@@ -189,9 +191,17 @@ public class RTCRoomActivity extends AppCompatActivity {
         mRemoteContainerArray[0] = findViewById(R.id.remote_video_0_container);
         mRemoteContainerArray[1] = findViewById(R.id.remote_video_1_container);
         mRemoteContainerArray[2] = findViewById(R.id.remote_video_2_container);
+        mRemoteContainerArray[3] = findViewById(R.id.remote_video_3_container);
+        mRemoteContainerArray[4] = findViewById(R.id.remote_video_4_container);
+        mRemoteContainerArray[5] = findViewById(R.id.remote_video_5_container);
+        mRemoteContainerArray[6] = findViewById(R.id.remote_video_5_container);
         mUserIdTvArray[0] = findViewById(R.id.remote_video_0_user_id_tv);
         mUserIdTvArray[1] = findViewById(R.id.remote_video_1_user_id_tv);
         mUserIdTvArray[2] = findViewById(R.id.remote_video_2_user_id_tv);
+        mUserIdTvArray[3] = findViewById(R.id.remote_video_0_user_id_tv);
+        mUserIdTvArray[4] = findViewById(R.id.remote_video_1_user_id_tv);
+        mUserIdTvArray[5] = findViewById(R.id.remote_video_2_user_id_tv);
+        mUserIdTvArray[6] = findViewById(R.id.remote_video_0_user_id_tv);
         findViewById(R.id.switch_camera).setOnClickListener((v) -> onSwitchCameraClick());
         mSpeakerIv = findViewById(R.id.switch_audio_router);
         mAudioIv = findViewById(R.id.switch_local_audio);
