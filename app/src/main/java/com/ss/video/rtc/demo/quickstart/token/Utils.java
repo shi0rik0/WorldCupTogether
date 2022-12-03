@@ -41,12 +41,12 @@ public class Utils {
     }
 
     public static String generateToken(String roomID, String userID) {
-        final int ONE_HOUR = 3600;
         final int ETERNAL = 0;
         AccessToken token = new AccessToken(Constants.APPID, Constants.APP_KEY, roomID, userID);
-        token.ExpireTime(Utils.getTimestamp() + ONE_HOUR);
+        token.ExpireTime(Utils.getTimestamp() + Constants.TOKEN_LIFESPAN);
         token.AddPrivilege(AccessToken.Privileges.PrivSubscribeStream, ETERNAL);
-        token.AddPrivilege(AccessToken.Privileges.PrivPublishStream, Utils.getTimestamp() + ONE_HOUR);
+        token.AddPrivilege(AccessToken.Privileges.PrivPublishStream,
+                Utils.getTimestamp() + Constants.TOKEN_LIFESPAN);
         return token.Serialize();
     }
 

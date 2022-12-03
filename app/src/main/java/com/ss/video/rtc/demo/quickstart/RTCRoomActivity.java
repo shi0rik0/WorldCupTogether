@@ -75,6 +75,8 @@ import java.util.Locale;
  * 详细的API文档参见{https://www.volcengine.com/docs/6348/70080}
  */
 public class RTCRoomActivity extends AppCompatActivity {
+    private String mRoomID;
+    private String mUserID;
 
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
@@ -119,6 +121,16 @@ public class RTCRoomActivity extends AppCompatActivity {
             super.onRoomStateChanged(roomId, uid, state, extraInfo);
             Log.d("RoomStateChanged", "roomid:"+roomId+"state:"+state+extraInfo+"uid:"+uid);
         }
+
+        /**
+         * 当token即将过期的时候，更新token。
+         */
+        @Override
+        public void onTokenWillExpire() {
+            super.onTokenWillExpire();
+            mRTCRoom.updateToken(Utils.generateToken(mRoomID, mUserID));
+            Log.d("onTokenWillExpire", "token updated");
+        }
     };
 
     private IRTCVideoEventHandler mIRtcVideoEventHandler = new IRTCVideoEventHandler() {
@@ -151,6 +163,7 @@ public class RTCRoomActivity extends AppCompatActivity {
             Log.d("IRTCVideoEventHandler", "onError: " + err);
             showAlertDialog(String.format(Locale.US, "error: %d", err));
         }
+
     };
 
     @Override
@@ -159,10 +172,10 @@ public class RTCRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_room);
 
         Intent intent = getIntent();
-        String roomId = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
-        String userId = intent.getStringExtra(Constants.USER_ID_EXTRA);
+        mRoomID = intent.getStringExtra(Constants.ROOM_ID_EXTRA);
+        mUserID = intent.getStringExtra(Constants.USER_ID_EXTRA);
         // 初始化ui界面
-        initUI(roomId, userId);
+        initUI(mRoomID, mUserID);
         // 下面这个函数调用包括这些操作：
         // createRTCVideo
         // setVideoEncoderConfig
@@ -171,7 +184,7 @@ public class RTCRoomActivity extends AppCompatActivity {
         // createRTCRoom
         // setRoomEventHandler
         // joinRoom
-        initEngineAndJoinRoom(roomId, userId);
+        initEngineAndJoinRoom(mRoomID, mUserID);
     }
 
     private void initUI(String roomId, String userId) {
