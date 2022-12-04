@@ -29,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -50,8 +51,17 @@ import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.bytertc.engine.type.UserMessageSendResult;
 import com.ss.video.rtc.demo.quickstart.token.Utils;
 
+//<<<<<<< HEAD
 import java.text.SimpleDateFormat;
+//=======
+import java.util.ArrayList;
+//>>>>>>> 9597204 (新增了视频播放和相关控件)
 import java.util.Locale;
+
+import me.rosuh.filepicker.bean.FileItemBeanImpl;
+import me.rosuh.filepicker.config.AbstractFileFilter;
+import me.rosuh.filepicker.config.FilePickerManager;
+import me.rosuh.filepicker.filetype.VideoFileType;
 
 /**
  * VolcEngineRTC 视频通话的主页面
@@ -600,5 +610,42 @@ public class RTCRoomActivity extends AppCompatActivity {
 
     private void onMessageReceived(String userID, String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    public void startScreenRecord(View view) {
+
+        FilePickerManager.INSTANCE.from(this).maxSelectable(1).filter(new AbstractFileFilter() {
+            @Override
+            public ArrayList<FileItemBeanImpl> doFilter(ArrayList<FileItemBeanImpl> arrayList) {
+                ArrayList<FileItemBeanImpl> res = new ArrayList<FileItemBeanImpl>();
+                for (FileItemBeanImpl item: arrayList){
+                    if (item.isDir() || item.getFileType() instanceof VideoFileType)
+                        res.add(item);
+                }
+                return res;
+            }
+        }).forResult(Constants.VIDEO_SELECTION);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case (Constants.VIDEO_SELECTION):
+                if (resultCode == RESULT_OK) {
+                    String path = "";
+                    for (String part : FilePickerManager.obtainData()) path += part;
+                    Intent startVideo = new Intent(this, VideoPlayActivity.class);
+                    startVideo.putExtra("path", path);
+                    startActivityForResult(startVideo, Constants.VIDEO_PLAY);
+                }
+                break;
+            case(Constants.VIDEO_PLAY):
+                // 在此处放置停止屏幕录制，开始推流摄像头视频流的逻辑。
+                break;
+            default:
+                break;
+        }
+
     }
 }

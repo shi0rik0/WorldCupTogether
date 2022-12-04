@@ -19,7 +19,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MinimRTCDemo">
         <activity
-            android:name=".VedioSelectionActivity"
+            android:name=".VideoPlayActivity"
+            android:screenOrientation="landscape"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -48,7 +49,7 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".RTCRoomActivity"
             android:launchMode="singleTop"

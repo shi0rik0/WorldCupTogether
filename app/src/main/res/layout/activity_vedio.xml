@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".VideoPlayActivity">
+
+    <VideoView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_centerInParent="true"
+        android:id="@+id/video_play_view"
+        android:onClick="showControls"/>
+
+    <ImageView
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:id="@+id/video_pause"
+        android:src="@drawable/pause_video"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="pauseVideo"
+        android:visibility="gone"
+        />
+
+    <ImageView
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:id="@+id/video_start"
+        android:src="@drawable/play_video"
+        android:layout_toRightOf="@id/video_pause"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="50dp"
+        android:onClick="startVideo"
+        android:visibility="gone"/>
+
+    <ImageView
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:id="@+id/video_cast_stop"
+        android:src="@drawable/stop_video"
+        android:layout_toLeftOf="@id/video_pause"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="50dp"
+        android:onClick="stopCastVideo"
+        android:visibility="gone"/>
+
+</RelativeLayout>
