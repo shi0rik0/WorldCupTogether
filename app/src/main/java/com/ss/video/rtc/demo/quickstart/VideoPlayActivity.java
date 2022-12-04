@@ -7,19 +7,26 @@ import android.graphics.Point;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.VideoView;
+
+import java.util.ArrayList;
 
 public class VideoPlayActivity extends AppCompatActivity {
     VideoView mVideoView;
     ImageView pauseView, startView, stopView;
     boolean visibility = false;
+    Handler animationHandler = new Handler();
+    Runnable animationRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,14 +75,57 @@ public class VideoPlayActivity extends AppCompatActivity {
         mVideoView.setLayoutParams(currParam);
     }
 
+    private void setVisibilityGone(Animation animation){
+        Log.d("Anime", "Animation Stops");
+        pauseView.setVisibility(View.GONE);
+        startView.setVisibility(View.GONE);
+        stopView.setVisibility(View.GONE);
+        animation.reset();
+        visibility = false;
+    }
+
     public void showControls(View view) {
         if (!visibility){
             pauseView.setVisibility(View.VISIBLE);
             startView.setVisibility(View.VISIBLE);
             stopView.setVisibility(View.VISIBLE);
             visibility = true;
+            Animation disappear = new AlphaAnimation(1f, 0f);
+            disappear.setDuration(1000);
+            disappear.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    Log.d("Anime", "Animation Starts");
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    setVisibilityGone(animation);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            });
+
+            animationRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    pauseView.startAnimation(disappear);
+                    stopView.startAnimation(disappear);
+                    startView.startAnimation(disappear);
+
+                    Log.d("Anime", "SetAnimationStarts");
+                }
+            };
+            animationHandler.postDelayed(animationRunnable, 3000);
         }
         else{
+            Log.d("Anime", "Click to Remove bars");
+            animationHandler.removeCallbacks(animationRunnable);
+            animationRunnable = null;
             pauseView.setVisibility(View.GONE);
             startView.setVisibility(View.GONE);
             stopView.setVisibility(View.GONE);
@@ -93,6 +143,7 @@ public class VideoPlayActivity extends AppCompatActivity {
     }
 
     public void stopCastVideo(View view) {
+        setResult(RESULT_OK);
         finish();
     }
 }
