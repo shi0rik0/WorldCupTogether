@@ -114,6 +114,7 @@ import me.rosuh.filepicker.filetype.VideoFileType;
  * 详细的API文档参见{https://www.volcengine.com/docs/6348/70080}
  */
 public class RTCRoomActivity extends AppCompatActivity {
+    private StringBuilder mVideoPath = new StringBuilder();
     private int mRemoteUsers = 0;
     private int mLineCount = 0;
     private String mRoomID;
@@ -230,7 +231,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         @Override
         public void onFirstRemoteVideoFrameDecoded(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
             super.onFirstRemoteVideoFrameDecoded(remoteStreamKey, frameInfo);
-            Log.d("IRTCVideoEventHandler", "onFirstRemoteVideoFrame: " + remoteStreamKey.toString());
+            Log.d("onFirstRemoteVideoFrame",
+                    remoteStreamKey.getUserId() + ":" + remoteStreamKey.getStreamIndex());
             runOnUiThread(() -> setRemoteView(remoteStreamKey.getRoomId(),
                     remoteStreamKey.getUserId(), remoteStreamKey.getStreamIndex()));
         }
@@ -315,7 +317,6 @@ public class RTCRoomActivity extends AppCompatActivity {
             }
         };
         mMessageTv.setMovementMethod(new ScrollingMovementMethod());
-        requestForScreenSharing();
     }
 
     private void initUI(String roomId, String userId) {
@@ -707,21 +708,22 @@ public class RTCRoomActivity extends AppCompatActivity {
         switch (requestCode){
             case (Constants.VIDEO_SELECTION):
                 if (resultCode == RESULT_OK) {
-                    String path = "";
-                    for (String part : FilePickerManager.obtainData()) path += part;
-                    Intent startVideo = new Intent(this, VideoPlayActivity.class);
-                    startVideo.putExtra("path", path);
-                    startActivityForResult(startVideo, Constants.VIDEO_PLAY);
+                    for (String part : FilePickerManager.obtainData()) mVideoPath.append(part);
+                    requestForScreenSharing();
                 }
                 break;
             case(Constants.VIDEO_PLAY):
                 // 在此处放置停止屏幕录制，开始推流摄像头视频流的逻辑。
+                stopScreenShare();
                 break;
             default:
                 break;
         }
 
         if (requestCode == REQUEST_CODE_OF_SCREEN_SHARING && resultCode == Activity.RESULT_OK) {
+            Intent startVideo = new Intent(this, VideoPlayActivity.class);
+            startVideo.putExtra("path", mVideoPath.toString());
+            startActivityForResult(startVideo, Constants.VIDEO_PLAY);
             startScreenShare(data);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
