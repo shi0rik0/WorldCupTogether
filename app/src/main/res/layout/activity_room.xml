@@ -135,8 +135,9 @@
                     android:id="@+id/self_video_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/self_video_container"
                     app:layout_constraintRight_toRightOf="@id/self_video_container" />
 
@@ -155,8 +156,9 @@
                     android:id="@+id/remote_video_0_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_0_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_0_container" />
 
@@ -181,8 +183,9 @@
                     android:id="@+id/remote_video_1_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_1_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_1_container" />
 
@@ -199,8 +202,9 @@
                     android:id="@+id/remote_video_2_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_2_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_2_container" />
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -224,8 +228,9 @@
                     android:id="@+id/remote_video_3_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_3_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_3_container" />
 
@@ -242,8 +247,9 @@
                     android:id="@+id/remote_video_4_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_4_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_4_container" />
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -267,8 +273,9 @@
                     android:id="@+id/remote_video_5_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_5_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_5_container" />
 
@@ -285,8 +292,9 @@
                     android:id="@+id/remote_video_6_user_id_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/purple_700"
-                    android:textSize="14dp"
+                    android:textColor="@color/white"
+                    android:background="@color/black"
+                    android:textSize="16dp"
                     app:layout_constraintBottom_toBottomOf="@id/remote_video_6_container"
                     app:layout_constraintRight_toRightOf="@id/remote_video_6_container" />
             </androidx.constraintlayout.widget.ConstraintLayout>

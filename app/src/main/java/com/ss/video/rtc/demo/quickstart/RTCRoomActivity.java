@@ -373,8 +373,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         });
         TextView roomIDTV = findViewById(R.id.room_id_text);
         TextView userIDTV = findViewById(R.id.self_video_user_id_tv);
-        roomIDTV.setText(String.format("RoomID:%s", roomId));
-        userIDTV.setText(String.format("UserID:%s", userId));
+        roomIDTV.setText(String.format("房间名：%s", roomId));
+        userIDTV.setText(String.format("%s", userId));
     }
 
     private void initEngineAndJoinRoom(String roomId, String userId) {
