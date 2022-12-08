@@ -123,8 +123,6 @@ public class RTCRoomActivity extends AppCompatActivity {
     private Runnable r;
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    private Button mTestButton;
-
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
     private ImageView mVideoIv;
@@ -214,7 +212,10 @@ public class RTCRoomActivity extends AppCompatActivity {
                 }
             }
             mRemoteStreamIndex[i] = StreamIndex.STREAM_INDEX_MAIN;
-            setRemoteViewByIndex(i, mRemoteRoomIDs[i], mShowUidArray[i], mRemoteStreamIndex[i]);
+            int j = i;
+            String roomID = mRemoteRoomIDs[i];
+            String userID = mShowUidArray[i];
+            runOnUiThread(()->setRemoteViewByIndex(j, roomID, userID, StreamIndex.STREAM_INDEX_MAIN));
         }
     };
 
@@ -374,12 +375,6 @@ public class RTCRoomActivity extends AppCompatActivity {
         TextView userIDTV = findViewById(R.id.self_video_user_id_tv);
         roomIDTV.setText(String.format("RoomID:%s", roomId));
         userIDTV.setText(String.format("UserID:%s", userId));
-        mTestButton = findViewById(R.id.test_button);
-        mTestButton.setOnClickListener((v) -> sendTestMessage());
-    }
-
-    private void sendTestMessage() {
-        mRTCRoom.sendRoomMessage("test!");
     }
 
     private void initEngineAndJoinRoom(String roomId, String userId) {
@@ -436,7 +431,6 @@ public class RTCRoomActivity extends AppCompatActivity {
         videoCanvas.isScreen = false;
         videoCanvas.renderMode = VideoCanvas.RENDER_MODE_HIDDEN;
         // 设置远端用户视频渲染视图
-        // TODO: 如果是录屏，要改成STREAM_INDEX_SCREEN
         mRTCVideo.setRemoteVideoCanvas(uid, streamIndex, videoCanvas);
     }
 

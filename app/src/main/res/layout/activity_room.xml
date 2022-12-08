@@ -53,8 +53,8 @@
 
         <ImageView
             android:id="@+id/switch_local_audio"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="18dp"
+            android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="16dp"
             android:layout_toRightOf="@id/switch_audio_router"
@@ -78,16 +78,6 @@
             android:layout_marginLeft="16dp"
             android:src="@drawable/normal_video"
             android:layout_toRightOf="@id/switch_local_audio"/>
-
-        <Button
-            android:id="@+id/test_button"
-            android:layout_width="80dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="450dp"
-            android:layout_toRightOf="@id/switch_local_audio"
-            android:src="@drawable/normal_video"
-            android:text="Test"
-            android:textSize="12dp" />
 
         <ImageView
             android:id="@+id/message"
