@@ -441,18 +441,28 @@ public class RTCRoomActivity extends AppCompatActivity {
     }
 
     private void setRemoteView(String roomId, String uid, StreamIndex streamIndex) {
-        int emptyInx = -1;
+        if (streamIndex == StreamIndex.STREAM_INDEX_SCREEN) {
+            int i;
+            for (i = 0; i < mShowUidArray.length; ++i) {
+                if (mShowUidArray[i].equals(uid)) {
+                    break;
+                }
+            }
+            setRemoteViewByIndex(i, roomId, uid, streamIndex);
+            return;
+        }
+        int j = -1;
         for (int i = 0; i < mShowUidArray.length; i++) {
-            if (TextUtils.isEmpty(mShowUidArray[i]) && emptyInx == -1) {
-                emptyInx = i;
+            if (TextUtils.isEmpty(mShowUidArray[i]) && j == -1) {
+                j = i;
             } else if (TextUtils.equals(uid, mShowUidArray[i])) {
                 return;
             }
         }
-        if (emptyInx < 0) {
+        if (j < 0) {
             return;
         }
-        setRemoteViewByIndex(emptyInx, roomId, uid, streamIndex);
+        setRemoteViewByIndex(j, roomId, uid, streamIndex);
         mRemoteUsers++;
     }
 
