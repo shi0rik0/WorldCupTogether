@@ -618,13 +618,10 @@ public class RTCRoomActivity extends AppCompatActivity {
         mMessageEt.setText("");
         if(!input.equals("")) {
             // local 用户发言，Username 会加粗
-            mMessageTv.append(Html.fromHtml("<b>Username: </b> Hello, this is Joey! :)"
-                    + "       " + simpleDateFormat.format(System.currentTimeMillis())));
+            mMessageTv.append(Html.fromHtml("<b>"+ mUserID + ": " + input + "</b>"));
             mMessageTv.append("\n");
+            mRTCRoom.sendRoomMessage(input);
 
-            // 其他用户发言
-            mMessageTv.append("Username: " + input + "       " +
-                    simpleDateFormat.format(System.currentTimeMillis())+"\n");
             int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
                     - mMessageTv.getHeight();
             if (scrollAmount > 0) {
@@ -661,7 +658,17 @@ public class RTCRoomActivity extends AppCompatActivity {
     }
 
     private void onMessageReceived(String userID, String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        updateLocalMessageStatus();
+        mMessageTv.append(userID + ": " + " " + msg + "        " +"\n");
+        // 日期时间 ： simpleDateFormat.format(System.currentTimeMillis())
+        int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
+                - mMessageTv.getHeight();
+        if (scrollAmount > 0) {
+            mMessageTv.scrollTo(0, scrollAmount);
+        }else {
+            mMessageTv.scrollTo(0, 0);
+        }
     }
 
     public void startScreenRecord(View view) {
