@@ -18,6 +18,12 @@
         android:roundIcon="@drawable/launcher_quick_start"
         android:supportsRtl="true"
         android:theme="@style/Theme.MinimRTCDemo">
+
+        <service android:name="org.webrtc.RXScreenCaptureService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection" />
+
         <activity
             android:name=".VideoPlayActivity"
             android:screenOrientation="landscape"

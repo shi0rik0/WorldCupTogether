@@ -5,6 +5,10 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.content.Context;
 import android.content.Intent;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,11 +33,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.ss.bytertc.engine.RTCEngine;
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCRoomConfig;
 import com.ss.bytertc.engine.RTCVideo;
@@ -43,12 +49,17 @@ import com.ss.bytertc.engine.VideoEncoderConfig;
 import com.ss.bytertc.engine.data.AudioRoute;
 import com.ss.bytertc.engine.data.CameraId;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
+import com.ss.bytertc.engine.data.ScreenMediaType;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.VideoFrameInfo;
+import com.ss.bytertc.engine.data.VideoSourceType;
 import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 import com.ss.bytertc.engine.type.ChannelProfile;
+import com.ss.bytertc.engine.type.MediaDeviceState;
 import com.ss.bytertc.engine.type.MediaStreamType;
+import com.ss.bytertc.engine.type.StreamRemoveReason;
 import com.ss.bytertc.engine.type.UserMessageSendResult;
+import com.ss.bytertc.engine.type.VideoDeviceType;
 import com.ss.video.rtc.demo.quickstart.token.Utils;
 
 //<<<<<<< HEAD
@@ -56,6 +67,8 @@ import java.text.SimpleDateFormat;
 //=======
 import java.util.ArrayList;
 //>>>>>>> 9597204 (新增了视频播放和相关控件)
+import org.webrtc.RXScreenCaptureService;
+
 import java.util.Locale;
 
 import me.rosuh.filepicker.bean.FileItemBeanImpl;
@@ -133,6 +146,7 @@ public class RTCRoomActivity extends AppCompatActivity {
     private final FrameLayout[] mRemoteContainerArray = new FrameLayout[MAX_REMOTE_USERS];
     private final TextView[] mUserIdTvArray = new TextView[MAX_REMOTE_USERS];
     private final String[] mShowUidArray = new String[MAX_REMOTE_USERS];
+    private final StreamIndex[] mRemoteStreamIndex = new StreamIndex[MAX_REMOTE_USERS];
 
     private RTCVideo mRTCVideo;
     private RTCRoom mRTCRoom;
@@ -187,7 +201,26 @@ public class RTCRoomActivity extends AppCompatActivity {
             super.onRoomMessageReceived(uid, message);
             runOnUiThread(() -> onMessageReceived(uid, message));
         }
+
+        @Override
+        public void onUserUnpublishScreen(String uid, MediaStreamType type, StreamRemoveReason reason) {
+            super.onUserUnpublishScreen(uid, type, reason);
+            Log.d("onUserUnpublishScreen", "some user just unpublished screen");
+            int i;
+            for (i = 0; i < mShowUidArray.length; ++i) {
+                if (mShowUidArray[i].equals(uid)) {
+                    break;
+                }
+            }
+            mRemoteStreamIndex[i] = StreamIndex.STREAM_INDEX_MAIN;
+            setRemoteViewByIndex(i, mRemoteRoomIDs[i], mShowUidArray[i], mRemoteStreamIndex[i]);
+        }
     };
+
+    private void stopScreenShare() {
+        // 停止屏幕数据采集
+        mRTCVideo.stopScreenCapture();
+    }
 
     private IRTCVideoEventHandler mIRtcVideoEventHandler = new IRTCVideoEventHandler() {
 
@@ -198,7 +231,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         public void onFirstRemoteVideoFrameDecoded(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
             super.onFirstRemoteVideoFrameDecoded(remoteStreamKey, frameInfo);
             Log.d("IRTCVideoEventHandler", "onFirstRemoteVideoFrame: " + remoteStreamKey.toString());
-            runOnUiThread(() -> setRemoteView(remoteStreamKey.getRoomId(), remoteStreamKey.getUserId()));
+            runOnUiThread(() -> setRemoteView(remoteStreamKey.getRoomId(),
+                    remoteStreamKey.getUserId(), remoteStreamKey.getStreamIndex()));
         }
 
         /**
@@ -218,6 +252,21 @@ public class RTCRoomActivity extends AppCompatActivity {
             super.onError(err);
             Log.d("IRTCVideoEventHandler", "onError: " + err);
             showAlertDialog(String.format(Locale.US, "error: %d", err));
+        }
+
+
+        @Override
+        public void onVideoDeviceStateChanged(String deviceId, VideoDeviceType deviceType, int deviceState, int deviceError) {
+            if (deviceType == VideoDeviceType.VIDEO_DEVICE_TYPE_SCREEN_CAPTURE_DEVICE) {
+                if (deviceState == MediaDeviceState.MEDIA_DEVICE_STATE_STARTED) {
+                    Log.d("onVideo***StateChanged", "publish screen");
+                    mRTCRoom.publishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+                    mRTCVideo.setVideoSourceType(StreamIndex.STREAM_INDEX_SCREEN, VideoSourceType.VIDEO_SOURCE_TYPE_INTERNAL);
+                } else if (deviceState == MediaDeviceState.MEDIA_DEVICE_STATE_STOPPED
+                        || deviceState == MediaDeviceState.MEDIA_DEVICE_STATE_RUNTIMEERROR) {
+                    mRTCRoom.unpublishScreen(MediaStreamType.RTC_MEDIA_STREAM_TYPE_BOTH);
+                }
+            }
         }
 
     };
@@ -266,6 +315,7 @@ public class RTCRoomActivity extends AppCompatActivity {
             }
         };
         mMessageTv.setMovementMethod(new ScrollingMovementMethod());
+        requestForScreenSharing();
     }
 
     private void initUI(String roomId, String userId) {
@@ -338,7 +388,7 @@ public class RTCRoomActivity extends AppCompatActivity {
         VideoEncoderConfig videoEncoderConfig = new VideoEncoderConfig(Constants.VIDEO_WIDTH,
                 Constants.VIDEO_HEIGHT, Constants.VIDEO_FRAME_RATE, Constants.VIDEO_MAX_BITRATE);
         mRTCVideo.setVideoEncoderConfig(videoEncoderConfig);
-        setLocalRenderView(userId);
+        setLocalRenderView(userId, StreamIndex.STREAM_INDEX_MAIN);
         // 开启本地视频采集
         mRTCVideo.startVideoCapture();
         // 开启本地音频采集
@@ -354,7 +404,7 @@ public class RTCRoomActivity extends AppCompatActivity {
         Log.i("TAG", "initEngineAndJoinRoom: " + joinRoomRes);
     }
 
-    private void setLocalRenderView(String uid) {
+    private void setLocalRenderView(String uid, StreamIndex streamIndex) {
         VideoCanvas videoCanvas = new VideoCanvas();
         TextureView renderView = new TextureView(this);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
@@ -367,10 +417,10 @@ public class RTCRoomActivity extends AppCompatActivity {
         videoCanvas.isScreen = false;
         videoCanvas.renderMode = VideoCanvas.RENDER_MODE_HIDDEN;
         // 设置本地视频渲染视图
-        mRTCVideo.setLocalVideoCanvas(StreamIndex.STREAM_INDEX_MAIN, videoCanvas);
+        mRTCVideo.setLocalVideoCanvas(streamIndex, videoCanvas);
     }
 
-    private void setRemoteRenderView(String roomId, String uid, FrameLayout container) {
+    private void setRemoteRenderView(String roomId, String uid, FrameLayout container, StreamIndex streamIndex) {
         TextureView renderView = new TextureView(this);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -385,10 +435,11 @@ public class RTCRoomActivity extends AppCompatActivity {
         videoCanvas.isScreen = false;
         videoCanvas.renderMode = VideoCanvas.RENDER_MODE_HIDDEN;
         // 设置远端用户视频渲染视图
-        mRTCVideo.setRemoteVideoCanvas(uid, StreamIndex.STREAM_INDEX_MAIN, videoCanvas);
+        // TODO: 如果是录屏，要改成STREAM_INDEX_SCREEN
+        mRTCVideo.setRemoteVideoCanvas(uid, streamIndex, videoCanvas);
     }
 
-    private void setRemoteView(String roomId, String uid) {
+    private void setRemoteView(String roomId, String uid, StreamIndex streamIndex) {
         int emptyInx = -1;
         for (int i = 0; i < mShowUidArray.length; i++) {
             if (TextUtils.isEmpty(mShowUidArray[i]) && emptyInx == -1) {
@@ -400,15 +451,16 @@ public class RTCRoomActivity extends AppCompatActivity {
         if (emptyInx < 0) {
             return;
         }
-        setRemoteViewByIndex(emptyInx, roomId, uid);
+        setRemoteViewByIndex(emptyInx, roomId, uid, streamIndex);
         mRemoteUsers++;
     }
 
-    private void setRemoteViewByIndex(int i, String roomID, String userID) {
+    private void setRemoteViewByIndex(int i, String roomID, String userID, StreamIndex streamIndex) {
         mRemoteRoomIDs[i] = roomID;
         mShowUidArray[i] = userID;
         mUserIdTvArray[i].setText(userID);
-        setRemoteRenderView(roomID, userID, mRemoteContainerArray[i]);
+        mRemoteStreamIndex[i] = streamIndex;
+        setRemoteRenderView(roomID, userID, mRemoteContainerArray[i], streamIndex);
     }
 
     private void removeRemoteView(String uid) {
@@ -419,7 +471,7 @@ public class RTCRoomActivity extends AppCompatActivity {
             }
         }
         for (int j = i; j < mRemoteUsers - 1; j++) {
-            setRemoteViewByIndex(j, mRemoteRoomIDs[j+1], mShowUidArray[j+1]);
+            setRemoteViewByIndex(j, mRemoteRoomIDs[j+1], mShowUidArray[j+1], mRemoteStreamIndex[j+1]);
         }
         removeRemoteViewByIndex(mRemoteUsers - 1);
         mRemoteUsers--;
@@ -618,13 +670,28 @@ public class RTCRoomActivity extends AppCompatActivity {
             @Override
             public ArrayList<FileItemBeanImpl> doFilter(ArrayList<FileItemBeanImpl> arrayList) {
                 ArrayList<FileItemBeanImpl> res = new ArrayList<FileItemBeanImpl>();
-                for (FileItemBeanImpl item: arrayList){
+                for (FileItemBeanImpl item : arrayList) {
                     if (item.isDir() || item.getFileType() instanceof VideoFileType)
                         res.add(item);
                 }
                 return res;
             }
         }).forResult(Constants.VIDEO_SELECTION);
+    }
+    private static final int REQUEST_CODE_OF_SCREEN_SHARING = 101;
+
+    // 向系统发起屏幕共享的权限请求
+    public void requestForScreenSharing() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            Log.e("ShareScreen","当前系统版本过低，无法支持屏幕共享");
+            return;
+        }
+        MediaProjectionManager projectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        if (projectionManager != null) {
+            startActivityForResult(projectionManager.createScreenCaptureIntent(), REQUEST_CODE_OF_SCREEN_SHARING);
+        } else {
+            Log.e("ShareScreen","当前系统版本过低，无法支持屏幕共享");
+        }
     }
 
     @Override
@@ -647,5 +714,36 @@ public class RTCRoomActivity extends AppCompatActivity {
                 break;
         }
 
+        if (requestCode == REQUEST_CODE_OF_SCREEN_SHARING && resultCode == Activity.RESULT_OK) {
+            startScreenShare(data);
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void startScreenShare(Intent data) {
+        startRXScreenCaptureService(data);
+        //编码参数
+        VideoEncoderConfig config = new VideoEncoderConfig();
+        config.width = 720;
+        config.height = 1280;
+        config.frameRate = 15;
+        config.maxBitrate = 1600;
+        mRTCVideo.setScreenVideoEncoderConfig(config);
+        // 开启屏幕视频数据采集
+        mRTCVideo.startScreenCapture(ScreenMediaType.SCREEN_MEDIA_TYPE_VIDEO_AND_AUDIO, data);
+    }
+
+    private void startRXScreenCaptureService(@NonNull Intent data) {
+        Context context = getApplicationContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Intent intent = new Intent();
+            intent.putExtra(RXScreenCaptureService.KEY_LARGE_ICON, R.drawable.launcher_quick_start);
+            intent.putExtra(RXScreenCaptureService.KEY_SMALL_ICON, R.drawable.launcher_quick_start);
+            intent.putExtra(RXScreenCaptureService.KEY_LAUNCH_ACTIVITY, getClass().getCanonicalName());
+            intent.putExtra(RXScreenCaptureService.KEY_CONTENT_TEXT, "正在录制/投射您的屏幕");
+            intent.putExtra(RXScreenCaptureService.KEY_RESULT_DATA, data);
+            context.startForegroundService(RXScreenCaptureService.getServiceIntent(context, RXScreenCaptureService.COMMAND_LAUNCH, intent));
+        }
     }
 }

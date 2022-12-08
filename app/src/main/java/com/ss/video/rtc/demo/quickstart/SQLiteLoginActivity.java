@@ -1,8 +1,12 @@
 package com.ss.video.rtc.demo.quickstart;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,7 +14,11 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.ss.bytertc.engine.VideoEncoderConfig;
+import com.ss.bytertc.engine.data.ScreenMediaType;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +30,7 @@ public class SQLiteLoginActivity extends AppCompatActivity {
 
     EditText etUsername;
     EditText etPassword;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
