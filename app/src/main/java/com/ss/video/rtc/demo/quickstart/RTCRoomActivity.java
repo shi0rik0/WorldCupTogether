@@ -396,7 +396,6 @@ public class RTCRoomActivity extends AppCompatActivity {
                 true, true, true);
         int joinRoomRes = mRTCRoom.joinRoom(Utils.generateToken(roomId, userId),
             UserInfo.create(userId, ""), roomConfig);
-        Toast.makeText(this, "initEngineAndJoinRoom: " + joinRoomRes, Toast.LENGTH_SHORT).show();
         Log.i("TAG", "initEngineAndJoinRoom: " + joinRoomRes);
     }
 
@@ -663,7 +662,6 @@ public class RTCRoomActivity extends AppCompatActivity {
     }
 
     private void onMessageReceived(String userID, String msg) {
-//        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         updateLocalMessageStatus();
         mMessageTv.append(userID + ": " + " " + msg + "        " +"\n");
         // 日期时间 ： simpleDateFormat.format(System.currentTimeMillis())
