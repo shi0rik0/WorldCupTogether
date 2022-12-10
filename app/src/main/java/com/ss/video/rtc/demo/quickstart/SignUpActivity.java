@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.regex.Pattern;
 
 public class SignUpActivity extends AppCompatActivity {
     EditText etUsername;
@@ -40,20 +41,24 @@ public class SignUpActivity extends AppCompatActivity {
         String password = etPassword.getText().toString();
         String passwordConfirm = etPasswordConfirm.getText().toString();
         Log.d(TAG, "onclick: " + password + passwordConfirm);
+        if (!Pattern.matches(Constants.INPUT_REGEX, username)) {
+            Toast.makeText(this, "⛔️ 用户名格式错误", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (username.isEmpty()) {
-            Toast.makeText(this,"用户名不能为空",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"⛔️ 用户名不能为空",Toast.LENGTH_SHORT).show();
             return;
         }
         if (password.isEmpty()) {
-            Toast.makeText(this,"密码不能为空",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"⛔️ 密码不能为空",Toast.LENGTH_SHORT).show();
             return;
         }
         if (passwordConfirm.isEmpty()) {
-            Toast.makeText(this,"确认密码不能为空",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"⛔️ 确认密码不能为空",Toast.LENGTH_SHORT).show();
             return;
         }
         if (!password.equals(passwordConfirm)) {
-            Toast.makeText(this,"两次密码输入不同",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"⛔️ 两次密码输入不同",Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -62,7 +67,7 @@ public class SignUpActivity extends AppCompatActivity {
 
         if (cursor.moveToNext()) {
             cursor.close();
-            Toast.makeText(this,"已存在的用户名",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"⚠️ 已存在的用户名",Toast.LENGTH_SHORT).show();
             return;
         }
         cursor.close();
