@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.view.animation.TranslateAnimation;
@@ -626,14 +627,19 @@ public class RTCRoomActivity extends AppCompatActivity {
             mMessageTv.append("\n");
             mRTCRoom.sendRoomMessage(input);
 
-            int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
-                    - mMessageTv.getHeight();
-
-            if (scrollAmount > 0) {
-                mMessageTv.scrollTo(0, scrollAmount);
-            }else {
-                mMessageTv.scrollTo(0, 0);
-            }
+            ViewTreeObserver vto = mMessageTv.getViewTreeObserver();
+            vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
+                            - mMessageTv.getHeight();
+                    if (scrollAmount > 0) {
+                        mMessageTv.scrollTo(0, scrollAmount);
+                    }else {
+                        mMessageTv.scrollTo(0, 0);
+                    }
+                }
+            });
         }
     }
 
@@ -666,13 +672,19 @@ public class RTCRoomActivity extends AppCompatActivity {
         if(!mIsMessage) updateLocalMessageStatus();
         mMessageTv.append(userID + ": " + " " + msg + "        " +"\n");
         // 日期时间 ： simpleDateFormat.format(System.currentTimeMillis())
-        int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
-                - mMessageTv.getHeight();
-        if (scrollAmount > 0) {
-            mMessageTv.scrollTo(0, scrollAmount);
-        }else {
-            mMessageTv.scrollTo(0, 0);
-        }
+        ViewTreeObserver vto = mMessageTv.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
+                        - mMessageTv.getHeight();
+                if (scrollAmount > 0) {
+                    mMessageTv.scrollTo(0, scrollAmount);
+                }else {
+                    mMessageTv.scrollTo(0, 0);
+                }
+            }
+        });
     }
 
     public void startScreenRecord(View view) {
