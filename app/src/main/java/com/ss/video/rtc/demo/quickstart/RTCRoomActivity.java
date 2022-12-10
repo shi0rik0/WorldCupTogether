@@ -313,7 +313,7 @@ public class RTCRoomActivity extends AppCompatActivity {
                 int lineCountTemp = mMessageTv.getLineCount();
                 Log.d(TAG, "run: " + lineCountTemp);
                 if(mLineCount == lineCountTemp) {
-                    hideChatView();
+//                    hideChatView();
                     updateLocalMessageStatus();
                 } else {
                     mLineCount = lineCountTemp;
