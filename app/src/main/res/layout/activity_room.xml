@@ -53,7 +53,7 @@
 
         <ImageView
             android:id="@+id/switch_local_audio"
-            android:layout_width="18dp"
+            android:layout_width="32dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="16dp"
