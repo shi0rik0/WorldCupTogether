@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.text.Html;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
@@ -71,6 +73,7 @@ import java.util.ArrayList;
 import org.webrtc.RXScreenCaptureService;
 
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import me.rosuh.filepicker.bean.FileItemBeanImpl;
 import me.rosuh.filepicker.config.AbstractFileFilter;
@@ -123,6 +126,7 @@ public class RTCRoomActivity extends AppCompatActivity {
     private Handler handler;
     private Runnable r;
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private boolean screenCastAvailable = true;
 
     private ImageView mSpeakerIv;
     private ImageView mAudioIv;
@@ -202,21 +206,34 @@ public class RTCRoomActivity extends AppCompatActivity {
             runOnUiThread(() -> onMessageReceived(uid, message));
         }
 
+        // 于此处进行投屏停止逻辑的修改：
         @Override
         public void onUserUnpublishScreen(String uid, MediaStreamType type, StreamRemoveReason reason) {
             super.onUserUnpublishScreen(uid, type, reason);
-            Log.d("onUserUnpublishScreen", "some user just unpublished screen");
-            int i;
-            for (i = 0; i < mShowUidArray.length; ++i) {
-                if (mShowUidArray[i].equals(uid)) {
-                    break;
-                }
-            }
-            mRemoteStreamIndex[i] = StreamIndex.STREAM_INDEX_MAIN;
-            int j = i;
-            String roomID = mRemoteRoomIDs[i];
-            String userID = mShowUidArray[i];
-            runOnUiThread(()->setRemoteViewByIndex(j, roomID, userID, StreamIndex.STREAM_INDEX_MAIN));
+            // Implementation Version 1
+//            Log.d("onUserUnpublishScreen", "some user just unpublished screen");
+//            int i;
+//            for (i = 0; i < mShowUidArray.length; ++i) {
+//                if (mShowUidArray[i].equals(uid)) {
+//                    break;
+//                }
+//            }
+//            mRemoteStreamIndex[i] = StreamIndex.STREAM_INDEX_MAIN;
+//            int j = i;
+//            String roomID = mRemoteRoomIDs[i];
+//            String userID = mShowUidArray[i];
+//            runOnUiThread(()->setRemoteViewByIndex(j, roomID, userID, StreamIndex.STREAM_INDEX_MAIN));
+
+            // Implementation Version 2:
+
+            FrameLayout videoCast = findViewById(R.id.video_cast);
+            ConstraintLayout videoCastHolder = findViewById(R.id.video_cast_holder);
+            ViewGroup.LayoutParams currParam = videoCastHolder.getLayoutParams();
+            currParam.height = 0;
+            runOnUiThread(()-> videoCastHolder.setLayoutParams(currParam));
+            runOnUiThread(()->setRemoteView(mRoomID, uid, StreamIndex.STREAM_INDEX_MAIN));
+            screenCastAvailable = true;
+
         }
     };
 
@@ -229,14 +246,45 @@ public class RTCRoomActivity extends AppCompatActivity {
 
         /**
          * SDK收到第一帧远端视频解码数据后，用户收到此回调。
+         * 于此处进行投屏开始逻辑的修改
          */
         @Override
         public void onFirstRemoteVideoFrameDecoded(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
             super.onFirstRemoteVideoFrameDecoded(remoteStreamKey, frameInfo);
-            Log.d("onFirstRemoteVideoFrame",
-                    remoteStreamKey.getUserId() + ":" + remoteStreamKey.getStreamIndex());
+//            Log.d("onFirstRemoteVideoFrame",
+//                    remoteStreamKey.getUserId() + ":" + remoteStreamKey.getStreamIndex());
             runOnUiThread(() -> setRemoteView(remoteStreamKey.getRoomId(),
                     remoteStreamKey.getUserId(), remoteStreamKey.getStreamIndex()));
+
+            if (remoteStreamKey.getStreamIndex() == StreamIndex.STREAM_INDEX_SCREEN)
+            {
+                screenCastAvailable = false; // 禁止多个用户同时进行视频放映
+                Log.d("screenCast", "enter main logic");
+                // 移除当前用户：
+                String userId = remoteStreamKey.getUserId();
+                Log.d("screenCast", "userid: " +userId);
+                String roomId = remoteStreamKey.getRoomId();
+                Log.d("screenCast", "roomId: "+ roomId);
+
+                runOnUiThread(() -> removeRemoteView(userId));
+                // 调整视窗构型
+                Point point = new Point();
+                Display display = getWindowManager().getDefaultDisplay();
+                display.getRealSize(point);
+                ConstraintLayout screenCastLayout = findViewById(R.id.video_cast_holder);
+                ViewGroup.LayoutParams currParam = screenCastLayout.getLayoutParams();
+                currParam.height = point.y - 270;
+                Log.d("screenCast", "height:"+currParam.height);
+
+                runOnUiThread(()->screenCastLayout.setLayoutParams(currParam));
+                // 将用户推流视频放到视频显示位置
+                FrameLayout videoCast = findViewById(R.id.video_cast);
+                setRemoteRenderView(roomId, userId, videoCast, StreamIndex.STREAM_INDEX_SCREEN);
+                TextView castUsername = findViewById(R.id.video_cast_user_id_tv);
+                runOnUiThread(() -> castUsername.setText(userId+"的屏幕共享"));
+                // toast一下
+                runOnUiThread(() -> Toast.makeText(RTCRoomActivity.this, userId+"开始共享屏幕了", Toast.LENGTH_SHORT).show());
+            }
         }
 
         /**
@@ -439,13 +487,6 @@ public class RTCRoomActivity extends AppCompatActivity {
 
     private void setRemoteView(String roomId, String uid, StreamIndex streamIndex) {
         if (streamIndex == StreamIndex.STREAM_INDEX_SCREEN) {
-            int i;
-            for (i = 0; i < mShowUidArray.length; ++i) {
-                if (mShowUidArray[i].equals(uid)) {
-                    break;
-                }
-            }
-            setRemoteViewByIndex(i, roomId, uid, streamIndex);
             return;
         }
         int j = -1;
@@ -470,6 +511,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         mRemoteStreamIndex[i] = streamIndex;
         setRemoteRenderView(roomID, userID, mRemoteContainerArray[i], streamIndex);
     }
+
+
 
     private void removeRemoteView(String uid) {
         int i;
@@ -691,6 +734,7 @@ public class RTCRoomActivity extends AppCompatActivity {
     }
 
     public void startScreenRecord(View view) {
+        if (!screenCastAvailable) return;
 
         FilePickerManager.INSTANCE.from(this).maxSelectable(1).filter(new AbstractFileFilter() {
             @Override
@@ -752,8 +796,8 @@ public class RTCRoomActivity extends AppCompatActivity {
         startRXScreenCaptureService(data);
         //编码参数
         VideoEncoderConfig config = new VideoEncoderConfig();
-        config.width = 720;
-        config.height = 1280;
+        config.width = 1280;
+        config.height = 720;
         config.frameRate = 15;
         config.maxBitrate = 1600;
         mRTCVideo.setScreenVideoEncoderConfig(config);
