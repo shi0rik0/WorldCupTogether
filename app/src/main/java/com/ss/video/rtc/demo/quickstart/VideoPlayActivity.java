@@ -17,12 +17,14 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 import java.util.ArrayList;
 
 public class VideoPlayActivity extends AppCompatActivity {
     VideoView mVideoView;
+    RelativeLayout mVideoViewContainer;
     ImageView pauseView, startView, stopView;
     boolean visibility = false;
     Handler animationHandler = new Handler();
@@ -34,7 +36,19 @@ public class VideoPlayActivity extends AppCompatActivity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         setContentView(R.layout.activity_vedio);
-        mVideoView = findViewById(R.id.video_play_view);
+        if (mVideoViewContainer != null) {
+            mVideoViewContainer.removeAllViews();
+        }
+        mVideoViewContainer = findViewById(R.id.video_view_container);
+        mVideoView = new VideoView(getApplicationContext());
+        mVideoViewContainer.addView(mVideoView);
+        mVideoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showControls(view);
+            }
+        });
+
         pauseView = findViewById(R.id.video_pause);
         startView = findViewById(R.id.video_start);
         stopView = findViewById(R.id.video_cast_stop);
@@ -63,7 +77,7 @@ public class VideoPlayActivity extends AppCompatActivity {
         display.getRealSize(point);
         float videoRatio = (float)width/height;
         float scrRatio = (float) point.x/point.y;
-        ViewGroup.LayoutParams currParam = mVideoView.getLayoutParams();
+        RelativeLayout.LayoutParams currParam = (RelativeLayout.LayoutParams) mVideoView.getLayoutParams();
         if (videoRatio > scrRatio){
             currParam.height = (int) (point.x/videoRatio);
             currParam.width = point.x;
@@ -72,6 +86,7 @@ public class VideoPlayActivity extends AppCompatActivity {
             currParam.width = (int) (point.y * videoRatio);
             currParam.height = point.y;
         }
+        currParam.addRule(RelativeLayout.CENTER_IN_PARENT);
         mVideoView.setLayoutParams(currParam);
     }
 
@@ -146,4 +161,22 @@ public class VideoPlayActivity extends AppCompatActivity {
         setResult(RESULT_OK);
         finish();
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        stopCastVideo(mVideoView);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mVideoViewContainer.removeAllViews();
+        mVideoView.setOnCompletionListener(null);
+        mVideoView.setOnErrorListener(null);
+        mVideoView.stopPlayback();
+        mVideoView = null;
+    }
+
+
 }
