@@ -26,4 +26,6 @@ public class Constants {
     public static final int VIDEO_PLAY = 114515;
     // token有效期是一小时
     public static final int TOKEN_LIFESPAN = 3600;
+
+    public static final int CHAT_SHOW_TIME = 3000;
 }

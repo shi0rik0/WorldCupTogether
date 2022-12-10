@@ -314,7 +314,7 @@ public class RTCRoomActivity extends AppCompatActivity {
                     updateLocalMessageStatus();
                 } else {
                     mLineCount = lineCountTemp;
-                    handler.postDelayed(this, 5000);
+                    handler.postDelayed(this, Constants.CHAT_SHOW_TIME);
                 }
             }
         };
@@ -366,7 +366,7 @@ public class RTCRoomActivity extends AppCompatActivity {
                     Log.d(TAG, "onFocusChange: lose focus");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         if (!handler.hasCallbacks(r)) {
-                         handler.postDelayed(r, 5000);
+                         handler.postDelayed(r, Constants.CHAT_SHOW_TIME);
                         }
                     }
                 }
@@ -534,7 +534,7 @@ public class RTCRoomActivity extends AppCompatActivity {
         if (mIsMessage) {
             // 开启聊天窗口
             showChatView();
-            handler.postDelayed(r, 5000);
+            handler.postDelayed(r, Constants.CHAT_SHOW_TIME);
         } else {
             // 关闭聊天窗口
             hideChatView();
