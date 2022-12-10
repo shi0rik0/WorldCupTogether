@@ -134,7 +134,7 @@ public class RTCRoomActivity extends AppCompatActivity {
     private boolean mIsSpeakerPhone = true;
     private boolean mIsMuteAudio = false;
     private boolean mIsMuteVideo = false;
-    private boolean mIsMessage = true;
+    private boolean mIsMessage = false;
     private CameraId mCameraID = CameraId.CAMERA_ID_FRONT;
 
     private FrameLayout mSelfContainer;
@@ -531,15 +531,15 @@ public class RTCRoomActivity extends AppCompatActivity {
     private void updateLocalMessageStatus() {
         mIsMessage = !mIsMessage;
         if (mIsMessage) {
-            // 关闭聊天窗口
-            hideChatView();
-            handler.removeCallbacksAndMessages(null);
-        } else {
             // 开启聊天窗口
             showChatView();
             handler.postDelayed(r, 5000);
+        } else {
+            // 关闭聊天窗口
+            hideChatView();
+            handler.removeCallbacksAndMessages(null);
         }
-        mMessageIv.setImageResource(mIsMessage ? R.drawable.message_square_on : R.drawable.message_square_off);
+        mMessageIv.setImageResource(mIsMessage ? R.drawable.message_square_off: R.drawable.message_square_on);
     }
 
     @Override
@@ -628,6 +628,7 @@ public class RTCRoomActivity extends AppCompatActivity {
 
             int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
                     - mMessageTv.getHeight();
+
             if (scrollAmount > 0) {
                 mMessageTv.scrollTo(0, scrollAmount);
             }else {
@@ -662,7 +663,7 @@ public class RTCRoomActivity extends AppCompatActivity {
     }
 
     private void onMessageReceived(String userID, String msg) {
-        updateLocalMessageStatus();
+        if(!mIsMessage) updateLocalMessageStatus();
         mMessageTv.append(userID + ": " + " " + msg + "        " +"\n");
         // 日期时间 ： simpleDateFormat.format(System.currentTimeMillis())
         int scrollAmount = mMessageTv.getLayout().getLineTop(mMessageTv.getLineCount())
