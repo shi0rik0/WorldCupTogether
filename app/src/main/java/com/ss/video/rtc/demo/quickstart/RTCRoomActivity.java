@@ -279,7 +279,7 @@ public class RTCRoomActivity extends AppCompatActivity {
                 runOnUiThread(()->screenCastLayout.setLayoutParams(currParam));
                 // 将用户推流视频放到视频显示位置
                 FrameLayout videoCast = findViewById(R.id.video_cast);
-                setRemoteRenderView(roomId, userId, videoCast, StreamIndex.STREAM_INDEX_SCREEN);
+                runOnUiThread(()->setRemoteRenderView(roomId, userId, videoCast, StreamIndex.STREAM_INDEX_SCREEN));
                 TextView castUsername = findViewById(R.id.video_cast_user_id_tv);
                 runOnUiThread(() -> castUsername.setText(userId+"的屏幕共享"));
                 // toast一下
