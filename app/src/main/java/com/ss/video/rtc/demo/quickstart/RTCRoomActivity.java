@@ -770,7 +770,9 @@ public class RTCRoomActivity extends AppCompatActivity {
         switch (requestCode){
             case (Constants.VIDEO_SELECTION):
                 if (resultCode == RESULT_OK) {
+                    mVideoPath = new StringBuilder();
                     for (String part : FilePickerManager.obtainData()) mVideoPath.append(part);
+                    FilePickerManager.release();
                     requestForScreenSharing();
                 }
                 break;
